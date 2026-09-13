@@ -15,7 +15,7 @@ Browser-based photo tools for sticker sheets and WhatsApp packs. No upload to se
 
 | Tool | Description |
 |------|-------------|
-| **Photo Splitter** | Upload a sticker sheet, place horizontal/vertical (and curved) cut lines, preview pieces, download as ZIP |
+| **Photo Splitter** | Split by guide lines (straight/curved) or by draggable shapes (circle/rectangle); preview pieces, download as ZIP |
 | **WhatsApp Sticker Maker** | Build a `.wastickers` pack (Sticker Maker format), reorder stickers, export for WhatsApp |
 
 ### Tech stack
@@ -66,10 +66,19 @@ photo-editor/
 
 ### Photo Splitter — quick guide
 
+**Lines mode**
+
 1. Upload an image (PNG, JPG, WEBP).
 2. Add vertical/horizontal guide lines and drag to align with sticker edges.
 3. Double-click a line to add a bend point; drag the yellow handle for a slight curve.
 4. Click **Complete** → preview → **Confirm and download** (ZIP).
+
+**Shapes mode** (toggle **Shapes** in the toolbar)
+
+1. Add **Circle** or **Rectangle** shapes and place them over the areas you want to cut.
+2. Drag to move; use corner handles to resize (opposite corner stays fixed); use the top handle to rotate.
+3. Delete a shape via the trash icon in the center, or select it and press **Delete** / **Backspace**.
+4. Click **Complete** → same preview and ZIP download (transparent PNG per shape).
 
 ### WhatsApp Sticker Maker — quick guide
 
@@ -89,7 +98,7 @@ Requirements: 512×512 WebP stickers (≤100 KB each), 96×96 PNG tray icon (≤
 
 | Araç | Açıklama |
 |------|----------|
-| **Foto Parçalayıcı** | Sticker sayfası yükle, dikey/yatay (ve eğimli) çizgilerle böl, önizle, ZIP indir |
+| **Foto Parçalayıcı** | Çizgilerle (düz/eğimli) veya daire/kare şekillerle böl; önizle, ZIP indir |
 | **WhatsApp Sticker Maker** | `.wastickers` paketi oluştur, sırala, WhatsApp’a aktar |
 
 ### Canlı adres
@@ -120,10 +129,19 @@ Test için örnek: `photo-editor.test.webisso.com`
 
 ### Foto Parçalayıcı — kısa kullanım
 
+**Çizgiler modu**
+
 1. Görsel yükleyin.
 2. Dikey/yatay çizgiler ekleyip sticker sınırlarına hizalayın.
 3. Eğim için çizgiye çift tıklayın, sarı noktayı sürükleyin.
 4. **Tamamla** → önizleme → **Onayla ve İndir**.
+
+**Şekiller modu** (üst menüden **Şekiller**’e geçin)
+
+1. **Daire** veya **Kare** ekleyip kesmek istediğiniz alanların üzerine yerleştirin.
+2. Sürükleyerek taşıyın; köşe tutamaçlarıyla boyutlandırın (karşı köşe sabit kalır); üst tutamaçla döndürün.
+3. Silmek için ortadaki çöp kutusuna tıklayın veya şekli seçip **Delete** / **Backspace** kullanın.
+4. **Tamamla** → aynı önizleme ve ZIP indirme (her şekil şeffaf PNG).
 
 ### WhatsApp Sticker Maker — kısa kullanım
 

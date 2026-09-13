@@ -20,15 +20,32 @@
         <h1 class="text-lg font-semibold tracking-tight">Foto Parçalayıcı</h1>
       </div>
       <div id="toolbar" class="hidden items-center gap-2 flex-wrap justify-end">
-        <button type="button" id="btn-add-v" class="tool-btn" title="Dikey çizgi ekle">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M12 4v16"/></svg>
-          Dikey Çizgi
-        </button>
-        <button type="button" id="btn-add-h" class="tool-btn" title="Yatay çizgi ekle">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 12h16"/></svg>
-          Yatay Çizgi
-        </button>
-        <button type="button" id="btn-clear" class="tool-btn tool-btn-muted">Çizgileri Temizle</button>
+        <div class="mode-switch">
+          <button type="button" id="mode-lines" class="mode-btn mode-btn-active">Çizgiler</button>
+          <button type="button" id="mode-shapes" class="mode-btn">Şekiller</button>
+        </div>
+        <div id="toolbar-lines" class="toolbar-group flex items-center gap-2 flex-wrap">
+          <button type="button" id="btn-add-v" class="tool-btn" title="Dikey çizgi ekle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M12 4v16"/></svg>
+            Dikey
+          </button>
+          <button type="button" id="btn-add-h" class="tool-btn" title="Yatay çizgi ekle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 12h16"/></svg>
+            Yatay
+          </button>
+          <button type="button" id="btn-clear" class="tool-btn tool-btn-muted">Temizle</button>
+        </div>
+        <div id="toolbar-shapes" class="toolbar-group hidden flex items-center gap-2 flex-wrap">
+          <button type="button" id="btn-add-circle" class="tool-btn" title="Daire ekle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/></svg>
+            Daire
+          </button>
+          <button type="button" id="btn-add-rect" class="tool-btn" title="Kare ekle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1" stroke-width="2"/></svg>
+            Kare
+          </button>
+          <button type="button" id="btn-clear-shapes" class="tool-btn tool-btn-muted">Temizle</button>
+        </div>
         <button type="button" id="btn-complete" class="tool-btn tool-btn-primary">Tamamla</button>
       </div>
     </div>
@@ -62,10 +79,13 @@
           <svg id="lines-svg"></svg>
         </div>
       </div>
-      <p class="text-xs text-zinc-500 mt-3">
-        Çizgileri sürükleyerek konumlandırın. Eğim noktası için çizgiye <strong>hızlıca iki kez tıklayın</strong>, sarı noktayı sürükleyerek U şekli verin.
-        Seçili çizgiyi silmek için <kbd class="kbd">Delete</kbd> veya <kbd class="kbd">Backspace</kbd>.
-        Eğim noktasını silmek için sarı noktaya sağ tıklayın.
+      <p id="help-lines" class="help-text text-xs text-zinc-500 mt-3">
+        Çizgileri sürükleyerek konumlandırın. Eğim için çizgiye <strong>hızlıca iki kez tıklayın</strong>.
+        Silmek: <kbd class="kbd">Delete</kbd> / <kbd class="kbd">Backspace</kbd>.
+      </p>
+      <p id="help-shapes" class="help-text text-xs text-zinc-500 mt-3 hidden">
+        Şekli sürükleyerek taşıyın. Köşe tutamaçlarıyla boyutlandırın, üstteki tutamaçla döndürün.
+        Silmek: ortadaki çöp kutusuna tıklayın veya <kbd class="kbd">Delete</kbd> / <kbd class="kbd">Backspace</kbd>.
       </p>
     </div>
 

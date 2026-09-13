@@ -34,6 +34,99 @@
   border-color: rgb(129 140 248);
 }
 
+.mode-switch {
+  display: inline-flex;
+  border: 1px solid rgb(63 63 70);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-right: 0.25rem;
+}
+
+.mode-btn {
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgb(39 39 42);
+  color: rgb(161 161 170);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn:hover {
+  color: rgb(212 212 216);
+}
+
+.mode-btn-active {
+  background: rgb(79 70 229);
+  color: white;
+}
+
+.toolbar-group.hidden {
+  display: none;
+}
+
+.help-text.hidden {
+  display: none;
+}
+
+#lines-svg .shape-hit {
+  pointer-events: all;
+  fill: rgba(99 102 241 / 0.08);
+  stroke: rgb(99 102 241 / 0.85);
+  stroke-width: 2;
+  cursor: move;
+}
+
+#lines-svg .shape-selected .shape-hit {
+  stroke: rgb(129 140 248);
+  fill: rgba(99 102 241 / 0.14);
+}
+
+#lines-svg .shape-handle {
+  pointer-events: all;
+  fill: rgb(250 204 21);
+  stroke: rgb(24 24 27);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+
+#lines-svg .shape-handle-resize {
+  cursor: nwse-resize;
+}
+
+#lines-svg .shape-handle-rotate {
+  cursor: grab;
+  fill: rgb(56 189 248);
+}
+
+#lines-svg .shape-label {
+  pointer-events: none;
+  font-size: 9px;
+  font-weight: 700;
+  fill: white;
+  font-family: system-ui, sans-serif;
+}
+
+#lines-svg .shape-delete-btn {
+  pointer-events: all;
+  cursor: pointer;
+  color: rgb(254 226 226);
+}
+
+#lines-svg .shape-delete-btn .shape-delete-bg,
+#lines-svg .shape-delete-btn circle {
+  fill: rgba(24 24 27 / 0.82);
+  stroke: rgb(248 113 113 / 0.9);
+  stroke-width: 1.5;
+  transition: fill 0.15s, stroke 0.15s, transform 0.15s;
+}
+
+#lines-svg .shape-delete-btn:hover circle {
+  fill: rgb(127 29 29 / 0.95);
+  stroke: rgb(252 165 165);
+}
+
 /* Upload zone */
 .upload-zone {
   display: flex;
