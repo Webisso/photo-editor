@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foto Parçalayıcı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="../../index.html" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Ana menü">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm font-bold">FP</div>
+        <h1 class="text-lg font-semibold tracking-tight">Foto Parçalayıcı</h1>
+      </div>
+      <div id="toolbar" class="hidden items-center gap-2 flex-wrap justify-end">
+        <button type="button" id="btn-add-v" class="tool-btn" title="Dikey çizgi ekle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M12 4v16"/></svg>
+          Dikey Çizgi
+        </button>
+        <button type="button" id="btn-add-h" class="tool-btn" title="Yatay çizgi ekle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M4 12h16"/></svg>
+          Yatay Çizgi
+        </button>
+        <button type="button" id="btn-clear" class="tool-btn tool-btn-muted">Çizgileri Temizle</button>
+        <button type="button" id="btn-complete" class="tool-btn tool-btn-primary">Tamamla</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+
+    <div id="upload-zone" class="upload-zone">
+      <input type="file" id="file-input" accept="image/*" class="hidden">
+      <div class="upload-icon">
+        <svg class="w-12 h-12 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <p class="text-lg font-medium text-zinc-300 mt-4">Fotoğraf yükle</p>
+      <p class="text-sm text-zinc-500 mt-1">PNG, JPG veya WEBP — sürükle bırak veya tıkla</p>
+      <button type="button" id="upload-btn" class="mt-6 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors">
+        Dosya Seç
+      </button>
+    </div>
+
+    <div id="editor" class="hidden">
+      <div class="flex items-center justify-between mb-4 text-sm text-zinc-400">
+        <span id="image-info"></span>
+        <span id="grid-info">Parça: 1 × 1</span>
+      </div>
+      <div id="editor-wrapper" class="editor-wrapper rounded-xl border border-zinc-800 bg-zinc-900 overflow-auto">
+        <div id="canvas-area" class="relative inline-block select-none">
+          <img id="source-image" alt="Kaynak görsel" draggable="false">
+          <svg id="lines-svg"></svg>
+        </div>
+      </div>
+      <p class="text-xs text-zinc-500 mt-3">
+        Çizgileri sürükleyerek konumlandırın. Eğim noktası için çizgiye <strong>hızlıca iki kez tıklayın</strong>, sarı noktayı sürükleyerek U şekli verin.
+        Seçili çizgiyi silmek için <kbd class="kbd">Delete</kbd> veya <kbd class="kbd">Backspace</kbd>.
+        Eğim noktasını silmek için sarı noktaya sağ tıklayın.
+      </p>
+    </div>
+
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="flex items-center justify-between p-5 border-b border-zinc-800">
+        <div>
+          <h2 class="text-lg font-semibold">Parça Önizleme</h2>
+          <p id="modal-subtitle" class="text-sm text-zinc-400 mt-0.5"></p>
+        </div>
+        <button type="button" id="modal-close" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="preview-grid" class="p-5 grid gap-3 overflow-y-auto max-h-[60vh]"></div>
+      <div class="flex items-center justify-end gap-3 p-5 border-t border-zinc-800">
+        <button type="button" id="modal-cancel" class="px-4 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors">
+          İptal
+        </button>
+        <button type="button" id="modal-confirm" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Onayla ve İndir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

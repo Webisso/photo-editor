@@ -1,0 +1,14 @@
+DirectoryIndex index.html
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Kök dizin (/) -> index.html
+  RewriteRule ^$ index.html [L]
+
+  # Klasör isteği sonunda / yoksa ekle
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule ^(.*)$ $1/ [R=301,L]
+</IfModule>

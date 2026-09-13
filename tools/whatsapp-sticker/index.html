@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Sticker Maker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="../../index.html" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Ana menü">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-sm font-bold">WA</div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">WhatsApp Sticker Maker</h1>
+          <p class="text-xs text-zinc-500 hidden sm:block">512×512 WebP · 3–30 sticker</p>
+        </div>
+      </div>
+        <button type="button" id="btn-save" class="tool-btn tool-btn-primary" disabled>
+        Kaydet (.wastickers)
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Pack info -->
+    <section class="panel">
+      <h2 class="panel-title">Paket Bilgileri</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="field">
+          <span>Paket Adı *</span>
+          <input type="text" id="pack-name" maxlength="128" placeholder="Örn: Komik Balıklar">
+        </label>
+        <label class="field">
+          <span>Yayıncı *</span>
+          <input type="text" id="pack-publisher" maxlength="128" placeholder="Örn: Umut Sticker">
+        </label>
+        <label class="field">
+          <span>Paket ID</span>
+          <input type="text" id="pack-id" maxlength="128" placeholder="otomatik oluşur">
+          <small class="field-hint">Benzersiz tanımlayıcı (a-z, 0-9, _ - .)</small>
+        </label>
+        <label class="field">
+          <span>Yayıncı E-posta</span>
+          <input type="email" id="pack-email" placeholder="opsiyonel">
+        </label>
+      </div>
+      <label class="field mt-4">
+        <span>Tray İkonu (96×96 PNG)</span>
+        <div class="tray-row">
+          <div id="tray-preview" class="tray-preview">
+            <span class="text-zinc-600 text-xs">Otomatik</span>
+          </div>
+          <div>
+            <input type="file" id="tray-input" accept="image/*" class="hidden">
+            <button type="button" id="btn-tray" class="tool-btn">Özel tray yükle</button>
+            <button type="button" id="btn-tray-reset" class="tool-btn tool-btn-muted ml-2">İlk stickera dön</button>
+          </div>
+        </div>
+      </label>
+    </section>
+
+    <!-- Upload -->
+    <section class="panel">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <h2 class="panel-title mb-0">Stickerlar</h2>
+        <span id="sticker-count" class="text-sm text-zinc-500">0 / 30</span>
+      </div>
+      <div id="upload-zone" class="upload-zone">
+        <input type="file" id="file-input" accept="image/*" multiple class="hidden">
+        <p class="text-zinc-300 font-medium">Sticker görselleri yükle</p>
+        <p class="text-sm text-zinc-500 mt-1">PNG, JPG veya WEBP — sürükle bırak veya tıkla (birden fazla seçilebilir)</p>
+        <button type="button" id="upload-btn" class="mt-4 px-5 py-2.5 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors">
+          Dosya Seç
+        </button>
+      </div>
+      <p class="text-xs text-zinc-500 mt-3">
+        WhatsApp gereksinimleri: 512×512 px, WebP, max 100 KB/sticker, min 3 — max 30 sticker. Sıralamak için kartları sürükleyin.
+      </p>
+      <div id="sticker-list" class="sticker-list"></div>
+    </section>
+
+  </main>
+
+  <!-- Result modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="flex items-center justify-between p-5 border-b border-zinc-800">
+        <div>
+          <h2 class="text-lg font-semibold">Paket Hazır!</h2>
+          <p id="modal-subtitle" class="text-sm text-zinc-400 mt-0.5"></p>
+        </div>
+        <button type="button" id="modal-close" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5">
+        <h3 class="text-sm font-semibold text-zinc-300 mb-3">Sticker Maker ile İçe Aktar</h3>
+        <ol class="steps-list text-sm text-zinc-400 space-y-2">
+          <li><strong class="text-zinc-300">1.</strong> <code class="text-green-400">.wastickers</code> dosyasını indirin</li>
+          <li><strong class="text-zinc-300">2.</strong> Dosyayı telefona aktarın (AirDrop, Drive, e-posta vb.)</li>
+          <li><strong class="text-zinc-300">3.</strong> Dosyaya dokunun veya <em>Sticker Maker</em> uygulamasına paylaşın</li>
+          <li><strong class="text-zinc-300">4.</strong> Uygulamada paketi açıp <strong>WhatsApp'a Ekle</strong> deyin</li>
+        </ol>
+        <button type="button" id="btn-download-zip" class="mt-6 w-full tool-btn tool-btn-primary justify-center">
+          .wastickers İndir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
