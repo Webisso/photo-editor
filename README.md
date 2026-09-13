@@ -40,11 +40,9 @@ python3 -m http.server 8080
 
 ### Deploy (GitHub Pages)
 
-Pushes to `main` trigger the workflow in `.github/workflows/gh-pages.yml` and publish to:
-
 **https://webisso.github.io/photo-editor/**
 
-**Repository settings:** Settings → Pages → Source: **GitHub Actions**
+**Repository settings:** Settings → Pages → Source: **Deploy from a branch** → Branch: `gh-pages` / `/ (root)` (or `main` / `/ (root)`)
 
 #### Custom domain (optional)
 
@@ -61,10 +59,9 @@ photo-editor/
 ├── index.html              # Main menu (router)
 ├── css/home.css
 ├── js/router.js
-├── tools/
-│   ├── parcalayici/        # Photo splitter
-│   └── whatsapp-sticker/   # WhatsApp sticker maker
-└── .github/workflows/      # gh-pages deploy
+└── tools/
+    ├── parcalayici/        # Photo splitter
+    └── whatsapp-sticker/   # WhatsApp sticker maker
 ```
 
 ### Photo Splitter — quick guide
@@ -111,9 +108,7 @@ Tarayıcıda `http://localhost:8080` adresini açın.
 
 ### Yayınlama (GitHub Pages)
 
-`main` branch’e push yapıldığında site otomatik yayınlanır.
-
-GitHub repo ayarları: **Settings → Pages → Source: GitHub Actions**
+GitHub repo ayarları: **Settings → Pages → Deploy from a branch** → `gh-pages` veya `main` / `/ (root)`
 
 #### Özel domain (isteğe bağlı)
 
