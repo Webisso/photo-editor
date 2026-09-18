@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metadata Temizleyici</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="../../index.html" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors" title="Ana menü">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-sm font-bold">MT</div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">Metadata Temizleyici</h1>
+          <p class="text-xs text-zinc-500 hidden sm:block">EXIF, GPS, kamera bilgisi — hepsini sil</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" id="btn-clear" class="tool-btn tool-btn-muted hidden">Temizle</button>
+        <button type="button" id="btn-download" class="tool-btn tool-btn-primary" disabled>
+          İndir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Info -->
+    <section class="info-banner">
+      <svg class="w-5 h-5 shrink-0 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-sm text-zinc-400">
+        Görseli sıfırdan yeniden oluşturarak <strong class="text-zinc-300">tüm metadata</strong> verilerini siler:
+        EXIF, GPS konumu, kamera modeli, çekim tarihi, IPTC, XMP ve diğer gizli bilgiler.
+        Dosyalar yalnızca tarayıcınızda işlenir, sunucuya gönderilmez.
+      </p>
+    </section>
+
+    <!-- Settings -->
+    <section class="panel">
+      <h2 class="panel-title">Ayarlar</h2>
+      <div class="settings-stack">
+        <label class="field">
+          <span>Çıktı Formatı</span>
+          <select id="output-format">
+            <option value="original">Orijinal formatı koru</option>
+            <option value="jpeg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="webp">WebP</option>
+          </select>
+        </label>
+        <label class="field" id="quality-field">
+          <span>JPEG / WebP Kalitesi</span>
+          <div class="quality-row">
+            <input type="range" id="quality" min="50" max="100" value="92">
+            <span id="quality-label" class="quality-label">92%</span>
+          </div>
+        </label>
+        <label class="toggle-field">
+          <input type="checkbox" id="ai-shield" class="toggle-input" checked>
+          <span class="toggle-box">
+            <span class="toggle-knob"></span>
+          </span>
+          <span class="toggle-text">
+            <strong>AI Koruması</strong>
+            <small>Sahte metadata ekle — GPS, kamera, açıklama ve anahtar kelimeleri rastgele değiştirerek AI analizini yanıltır. JPEG çıktısı gerektirir.</small>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Upload -->
+    <section class="panel">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <h2 class="panel-title mb-0">Görseller</h2>
+        <span id="file-count" class="text-sm text-zinc-500">0 dosya</span>
+      </div>
+      <div id="upload-zone" class="upload-zone">
+        <input type="file" id="file-input" accept="image/*" multiple class="hidden">
+        <svg class="w-10 h-10 text-zinc-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <p class="text-zinc-300 font-medium">Görsel yükle</p>
+        <p class="text-sm text-zinc-500 mt-1">JPG, PNG, WebP, GIF, BMP — sürükle bırak veya tıkla</p>
+        <button type="button" id="upload-btn" class="mt-4 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium transition-colors">
+          Dosya Seç
+        </button>
+      </div>
+      <div id="file-list" class="file-list"></div>
+    </section>
+
+  </main>
+
+  <!-- Metadata modal -->
+  <div id="meta-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Metadata Karşılaştırma</h2>
+          <p id="modal-filename" class="modal-subtitle"></p>
+        </div>
+        <button type="button" id="modal-close" class="btn-icon" title="Kapat">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-summary" class="meta-summary"></div>
+        <div class="meta-table-wrap">
+          <table class="meta-table">
+            <thead>
+              <tr>
+                <th>Alan</th>
+                <th>Önce</th>
+                <th>Sonra</th>
+              </tr>
+            </thead>
+            <tbody id="meta-table-body"></tbody>
+          </table>
+        </div>
+        <p id="modal-empty" class="meta-empty hidden">Bu dosyada metadata bulunamadı.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
