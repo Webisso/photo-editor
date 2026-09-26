@@ -315,7 +315,7 @@
 
     if (face === 'back') {
       const hint = state.flip === 'long'
-        ? 'Sağa-sola çevir · baskı alta'
+        ? ''
         : 'Yukarı-aşağı çevir · alt üste';
       svg.appendChild(svgText(4, 12.5, hint, { size: 2.2, fill: '#71717a' }));
     }
@@ -977,7 +977,7 @@
     if (face === 'back') {
       ctx.font = `600 ${2.2 * scale}px system-ui, sans-serif`;
       const hint = state.flip === 'long'
-        ? 'Sağa-sola çevir · baskı alta'
+        ? ''
         : 'Yukarı-aşağı çevir · alt üste';
       ctx.fillText(hint, 4 * scale, 12.5 * scale);
     }
