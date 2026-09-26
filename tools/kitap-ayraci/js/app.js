@@ -6,6 +6,8 @@
     pageH: 297,
     bmW: 45,
     bmH: 140,
+    cutTop: 1.75,
+    cutRight: 1.75,
     cols: 4,
     rows: 2,
     get originX() { return (this.pageW - this.cols * this.bmW) / 2; },
@@ -118,6 +120,15 @@
     toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 2800);
   }
 
+  function safeArea() {
+    return {
+      x: 0,
+      y: GEO.cutTop,
+      w: GEO.bmW - GEO.cutRight,
+      h: GEO.bmH - GEO.cutTop,
+    };
+  }
+
   function frontArrangement() {
     return [0, 1, 2, 3, 4, 5, 6, 7].map((slot) => ({ slot, rot: 0 }));
   }
@@ -136,29 +147,31 @@
   }
 
   function imageDrawRect(photo) {
+    const safe = safeArea();
     const nw = photo.img.naturalWidth || 1;
     const nh = photo.img.naturalHeight || 1;
-    const cover = Math.max(GEO.bmW / nw, GEO.bmH / nh);
+    const cover = Math.max(safe.w / nw, safe.h / nh);
     const mmPerPx = cover * photo.scale;
     const w = nw * mmPerPx;
     const h = nh * mmPerPx;
     return {
-      x: (GEO.bmW - w) / 2 + photo.panX,
-      y: (GEO.bmH - h) / 2 + photo.panY,
+      x: safe.x + (safe.w - w) / 2 + photo.panX,
+      y: safe.y + (safe.h - h) / 2 + photo.panY,
       w,
       h,
     };
   }
 
   function clampPhoto(photo) {
+    const safe = safeArea();
     const rect = imageDrawRect(photo);
-    const minOverlap = 8;
+    const minOverlap = 4;
     let x = rect.x;
     let y = rect.y;
-    const loX = minOverlap - rect.w;
-    const hiX = GEO.bmW - minOverlap;
-    const loY = minOverlap - rect.h;
-    const hiY = GEO.bmH - minOverlap;
+    const loX = safe.x + minOverlap - rect.w;
+    const hiX = safe.x + safe.w - minOverlap;
+    const loY = safe.y + minOverlap - rect.h;
+    const hiY = safe.y + safe.h - minOverlap;
     if (loX <= hiX) x = Math.min(hiX, Math.max(loX, x));
     if (loY <= hiY) y = Math.min(hiY, Math.max(loY, y));
     photo.panX += x - rect.x;
@@ -166,10 +179,11 @@
   }
 
   function containScale(photo) {
+    const safe = safeArea();
     const nw = photo.img.naturalWidth || 1;
     const nh = photo.img.naturalHeight || 1;
-    const cover = Math.max(GEO.bmW / nw, GEO.bmH / nh);
-    const contain = Math.min(GEO.bmW / nw, GEO.bmH / nh);
+    const cover = Math.max(safe.w / nw, safe.h / nh);
+    const contain = Math.min(safe.w / nw, safe.h / nh);
     return contain / cover;
   }
 
@@ -213,18 +227,16 @@
   }
 
   function cornerRegistrationPaths() {
-    const L = 14;
+    const L = Math.min(14, GEO.originY - 0.5);
     const M = GEO.pageW;
     const H = GEO.pageH;
+    const y1 = GEO.originY + GEO.rows * GEO.bmH;
+    const bottomLen = Math.min(14, H - y1 - 0.5);
     return [
       `M 0 ${L} L 0 0 L ${L} 0`,
       `M ${M - L} 0 L ${M} 0 L ${M} ${L}`,
-      `M ${M} ${H - L} L ${M} ${H} L ${M - L} ${H}`,
-      `M ${L} ${H} L 0 ${H} L 0 ${H - L}`,
-      `M ${M / 2 - 4} 0 V ${L}`,
-      `M ${M / 2 + 4} 0 V ${L}`,
-      `M ${M / 2 - 4} ${H} V ${H - L}`,
-      `M ${M / 2 + 4} ${H} V ${H - L}`,
+      `M ${M} ${H - bottomLen} L ${M} ${H} L ${M - L} ${H}`,
+      `M ${L} ${H} L 0 ${H} L 0 ${H - bottomLen}`,
     ];
   }
 
@@ -307,18 +319,7 @@
       svg.appendChild(svgText(4, 12.5, hint, { size: 2.2, fill: '#71717a' }));
     }
 
-    const feedY = feed === 'top' ? 4.2 : GEO.pageH - 2.8;
-    const feedLine = document.createElementNS(SVG_NS, 'path');
-    if (feed === 'top') {
-      feedLine.setAttribute('d', `M ${GEO.pageW / 2 - 8} 1.2 H ${GEO.pageW / 2 + 8}`);
-    } else {
-      feedLine.setAttribute('d', `M ${GEO.pageW / 2 - 8} ${GEO.pageH - 1.2} H ${GEO.pageW / 2 + 8}`);
-    }
-    feedLine.setAttribute('stroke', '#16a34a');
-    feedLine.setAttribute('stroke-width', '0.45');
-    feedLine.setAttribute('vector-effect', 'non-scaling-stroke');
-    svg.appendChild(feedLine);
-
+    const feedY = feed === 'top' ? 4.2 : GEO.pageH - 5.5;
     const feedText = feed === 'top'
       ? '▲ YAZICI BESLEMESİ — bu kenar ilk girer'
       : '▼ YAZICI BESLEMESİ — bu kenar ilk girer (2. geçiş)';
@@ -769,7 +770,9 @@
   }
 
   function drawCornersCanvas(ctx, scale) {
-    const L = 14;
+    const topLen = Math.min(14, GEO.originY - 0.5);
+    const y1 = GEO.originY + GEO.rows * GEO.bmH;
+    const bottomLen = Math.min(14, GEO.pageH - y1 - 0.5);
     const M = GEO.pageW;
     const H = GEO.pageH;
     const s = scale;
@@ -781,14 +784,10 @@
     ctx.strokeStyle = '#18181b';
     ctx.lineWidth = 0.35 * s;
     ctx.beginPath();
-    seg(0, L, 0, 0); seg(0, 0, L, 0);
-    seg(M - L, 0, M, 0); seg(M, 0, M, L);
-    seg(M, H - L, M, H); seg(M, H, M - L, H);
-    seg(L, H, 0, H); seg(0, H, 0, H - L);
-    seg(M / 2 - 4, 0, M / 2 - 4, L);
-    seg(M / 2 + 4, 0, M / 2 + 4, L);
-    seg(M / 2 - 4, H, M / 2 - 4, H - L);
-    seg(M / 2 + 4, H, M / 2 + 4, H - L);
+    seg(0, topLen, 0, 0); seg(0, 0, topLen, 0);
+    seg(M - topLen, 0, M, 0); seg(M, 0, M, topLen);
+    seg(M, H - bottomLen, M, H); seg(M, H, M - bottomLen, H);
+    seg(bottomLen, H, 0, H); seg(0, H, 0, H - bottomLen);
     ctx.stroke();
     ctx.restore();
   }
@@ -858,9 +857,15 @@
       const oy = pos.y * scale + oyOff;
       const bw = GEO.bmW * scale;
       const bh = GEO.bmH * scale;
+      const safe = safeArea();
       ctx.save();
       ctx.beginPath();
-      ctx.rect(ox, oy, bw, bh);
+      ctx.rect(
+        ox + safe.x * scale,
+        oy + safe.y * scale,
+        safe.w * scale,
+        safe.h * scale
+      );
       ctx.clip();
       if (photo) {
         const rect = imageDrawRect(photo);

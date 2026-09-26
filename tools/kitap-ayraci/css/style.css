@@ -173,6 +173,7 @@
   inset: 0;
   overflow: hidden;
   background: white;
+  clip-path: inset(3.89% 3.89% 0 0);
 }
 
 .bm-img {
@@ -727,6 +728,7 @@
   overflow: hidden;
   background: white;
   transform-origin: center center;
+  clip-path: inset(1.75mm 1.75mm 0 0);
 }
 
 .print-bm img {
