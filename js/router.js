@@ -34,6 +34,14 @@
       icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M7 4.5h10a1 1 0 011 1V20l-6-3-6 3V5.5a1 1 0 011-1z"/></svg>`,
       enabled: true,
     },
+    {
+      id: 'beyaz-ayirici',
+      title: 'Beyaz Arka Plan Ayırıcı',
+      description: 'Beyaz zeminli sayfayı ızgaraya böl, şeffaf PNG parçaları ZIP indir',
+      path: 'tools/beyaz-ayirici/',
+      icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6a2 2 0 012-2h2v16H6a2 2 0 01-2-2V6zm12-2h2a2 2 0 012 2v12a2 2 0 01-2 2h-2V4zM10 4h4v16h-4V4z"/></svg>`,
+      enabled: true,
+    },
   ];
 
   const menu = document.getElementById('tool-menu');

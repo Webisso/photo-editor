@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beyaz Arka Plan Ayırıcı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="../../index.html" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors shrink-0" title="Ana menü">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-sm font-bold shrink-0">BA</div>
+        <div class="min-w-0">
+          <h1 class="text-lg font-semibold tracking-tight">Beyaz Arka Plan Ayırıcı</h1>
+          <p class="text-xs text-zinc-500 truncate">Esnek ızgara · beyazı sil · şeffaf PNG ZIP</p>
+        </div>
+      </div>
+      <div id="toolbar" class="hidden items-center gap-2 shrink-0">
+        <button type="button" id="btn-preview" class="tool-btn">Önizle</button>
+        <button type="button" id="btn-zip" class="tool-btn tool-btn-primary">ZIP indir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div id="upload-zone" class="upload-zone">
+      <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" class="hidden">
+      <p class="text-zinc-300 font-medium">Beyaz zeminli sayfa fotoğrafı yükle</p>
+      <p class="text-sm text-zinc-500 mt-1 text-center max-w-md">Sütun ve satır sayısını sen seç (ör. 4×2, 3×1, 5×2). Beyaz alan şeffaf yapılır, her parça kenarına göre kırpılır.</p>
+      <button type="button" id="upload-btn" class="mt-5 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm font-medium transition-colors">
+        Dosya Seç
+      </button>
+    </div>
+
+    <div id="workspace" class="workspace hidden">
+      <section class="stage">
+        <p id="image-info" class="text-xs text-zinc-500 mb-2"></p>
+        <div id="editor-wrapper" class="editor-wrapper">
+          <div id="canvas-area" class="canvas-area">
+            <img id="source-image" alt="Kaynak" draggable="false">
+            <svg id="grid-svg" aria-hidden="true"></svg>
+          </div>
+        </div>
+        <p class="hint">Dikey ve yatay çizgileri sürükleyerek hizalayın. Numaralar kesim sırasını gösterir.</p>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2 class="panel-title">Beyaz algılama</h2>
+          <label class="field" for="threshold">
+            <span>Eşik <strong id="threshold-val">248</strong></span>
+            <input type="range" id="threshold" min="220" max="255" value="248">
+          </label>
+          <label class="field mt-3" for="trim-pad">
+            <span>Kırpma payı <strong id="trim-pad-val">2</strong> px</span>
+            <input type="range" id="trim-pad" min="0" max="12" value="2">
+          </label>
+          <p class="text-xs text-zinc-500 mt-2">Arka plan beyazı hücre kenarından içeri girer; ayraç içindeki kapalı beyaz alanlara dokunulmaz.</p>
+          <label class="check-row mt-3">
+            <input type="checkbox" id="opt-content-box" checked>
+            <span>Dış beyaz kenarı otomatik atla</span>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">Izgara</h2>
+          <p id="grid-summary" class="text-sm text-zinc-400">4 sütun × 2 satır · 8 parça</p>
+          <div class="grid-size-row mt-3">
+            <label class="field">
+              <span>Sütun</span>
+              <input type="number" id="grid-cols" min="1" max="12" value="4">
+            </label>
+            <label class="field">
+              <span>Satır</span>
+              <input type="number" id="grid-rows" min="1" max="12" value="2">
+            </label>
+          </div>
+          <div class="preset-row">
+            <button type="button" class="preset-btn" data-cols="4" data-rows="2">4×2</button>
+            <button type="button" class="preset-btn" data-cols="3" data-rows="1">3×1</button>
+            <button type="button" class="preset-btn" data-cols="5" data-rows="2">5×2</button>
+            <button type="button" class="preset-btn" data-cols="1" data-rows="4">1×4</button>
+          </div>
+          <button type="button" id="btn-reset-grid" class="tool-btn tool-btn-muted mt-3">Çizgileri sıfırla</button>
+          <button type="button" id="btn-auto-gutter" class="tool-btn mt-2">Boşlukları otomatik bul</button>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">Yeni görsel</h2>
+          <button type="button" id="btn-replace" class="tool-btn w-full justify-center">Başka dosya yükle</button>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="flex items-center justify-between gap-4 p-5 border-b border-zinc-800">
+        <div>
+          <h2 class="text-lg font-semibold">Parça önizleme</h2>
+          <p id="modal-sub" class="text-sm text-zinc-400 mt-0.5"></p>
+        </div>
+        <button type="button" id="modal-close" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="preview-grid" class="preview-grid p-5"></div>
+      <div class="flex justify-end gap-2 p-5 border-t border-zinc-800">
+        <button type="button" id="modal-cancel" class="tool-btn tool-btn-muted">Kapat</button>
+        <button type="button" id="modal-zip" class="tool-btn tool-btn-primary">ZIP indir</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="piece-zoom-modal" class="zoom-modal hidden" role="dialog" aria-labelledby="piece-zoom-title">
+    <div class="zoom-modal-top">
+      <div>
+        <h2 id="piece-zoom-title" class="text-base font-semibold">Parça inceleme</h2>
+        <p id="piece-zoom-sub" class="text-xs text-zinc-400 mt-0.5"></p>
+      </div>
+      <button type="button" id="piece-zoom-close" class="icon-btn" title="Kapat">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="piece-zoom-split">
+      <section class="piece-zoom-pane" aria-label="Kesilmiş parça">
+        <div class="piece-zoom-pane-head">
+          <span class="piece-zoom-pane-label">Kesilmiş · şeffaf</span>
+          <div class="piece-zoom-pane-actions">
+            <span id="piece-zoom-level-trim" class="zoom-level">100%</span>
+            <button type="button" class="icon-btn piece-zoom-out" data-pane="trim" title="Uzaklaştır">−</button>
+            <button type="button" class="icon-btn piece-zoom-in" data-pane="trim" title="Yakınlaştır">+</button>
+            <button type="button" class="tool-btn piece-zoom-fit" data-pane="trim">Sığdır</button>
+          </div>
+        </div>
+        <div id="piece-zoom-viewport-trim" class="zoom-viewport">
+          <div id="piece-zoom-canvas-trim" class="zoom-canvas">
+            <div class="zoom-content-wrap" id="piece-zoom-content-trim"></div>
+          </div>
+        </div>
+      </section>
+      <section class="piece-zoom-pane" aria-label="Hücre orijinal">
+        <div class="piece-zoom-pane-head">
+          <span class="piece-zoom-pane-label">Hücre · kesilmemiş</span>
+          <div class="piece-zoom-pane-actions">
+            <span id="piece-zoom-level-raw" class="zoom-level">100%</span>
+            <button type="button" class="icon-btn piece-zoom-out" data-pane="raw" title="Uzaklaştır">−</button>
+            <button type="button" class="icon-btn piece-zoom-in" data-pane="raw" title="Yakınlaştır">+</button>
+            <button type="button" class="tool-btn piece-zoom-fit" data-pane="raw">Sığdır</button>
+          </div>
+        </div>
+        <div id="piece-zoom-viewport-raw" class="zoom-viewport">
+          <div id="piece-zoom-canvas-raw" class="zoom-canvas">
+            <div class="zoom-content-wrap" id="piece-zoom-content-raw"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="zoom-hint">Her panelde tekerlek veya sürükle ile yakınlaştırın. <kbd class="kbd">Esc</kbd> ile kapatın.</p>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>
