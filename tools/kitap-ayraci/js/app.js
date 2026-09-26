@@ -108,6 +108,7 @@
   let toastTimer = 0;
   const zoomPan = { scale: 1, x: 0, y: 0 };
   let zoomDrag = null;
+  let zoomViewMode = 'page';
 
   const zoomModal = $('#zoom-modal');
   const zoomViewport = $('#zoom-viewport');
@@ -253,23 +254,23 @@
     return el;
   }
 
-  function cornerRegistrationSvg() {
+  function cornerRegistrationSvg(opts = {}) {
     const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'marks marks-corners');
+    svg.setAttribute('class', opts.className || 'marks marks-corners');
     svg.setAttribute('viewBox', `0 0 ${GEO.pageW} ${GEO.pageH}`);
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', cornerRegistrationPaths().join(' '));
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#18181b');
-    path.setAttribute('stroke-width', '0.35');
+    path.setAttribute('stroke', opts.stroke || '#18181b');
+    path.setAttribute('stroke-width', opts.strokeWidth || '0.35');
     path.setAttribute('vector-effect', 'non-scaling-stroke');
     svg.appendChild(path);
     return svg;
   }
 
-  function gridMarksSvg() {
+  function gridMarksSvg(opts = {}) {
     const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'marks marks-grid');
+    svg.setAttribute('class', opts.className || 'marks marks-grid');
     svg.setAttribute('viewBox', `0 0 ${GEO.pageW} ${GEO.pageH}`);
     const parts = [];
     eachGuide((x1, y1, x2, y2) => {
@@ -278,8 +279,8 @@
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', parts.join(' '));
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#6b7280');
-    path.setAttribute('stroke-width', '0.2');
+    path.setAttribute('stroke', opts.stroke || '#6b7280');
+    path.setAttribute('stroke-width', opts.strokeWidth || '0.2');
     path.setAttribute('vector-effect', 'non-scaling-stroke');
     svg.appendChild(path);
     return svg;
@@ -427,6 +428,7 @@
 
   function renderAll() {
     for (let i = 0; i < 8; i += 1) renderSlot(i);
+    refreshAlignmentPreview();
   }
 
   function updateCount() {
@@ -558,8 +560,16 @@
   }
 
   function refreshZoomSheet() {
-    const face = state.face === 'front' ? 'front' : 'back';
-    $('#zoom-content').replaceChildren(buildSheet(face));
+    if (zoomViewMode === 'align') {
+      $('#zoom-modal-title').textContent = 'Hizalama inceleme';
+      $('#zoom-modal-sub').textContent = 'Turuncu ön · camgöbeği arka · pembe ok kaydırma';
+      $('#zoom-content').replaceChildren(buildAlignmentView());
+    } else {
+      const face = state.face === 'front' ? 'front' : 'back';
+      $('#zoom-modal-title').textContent = 'Sayfa inceleme';
+      $('#zoom-modal-sub').textContent = zoomFaceLabel();
+      $('#zoom-content').replaceChildren(buildSheet(face));
+    }
     if (zoomModal.classList.contains('hidden')) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => fitZoom());
@@ -567,10 +577,16 @@
   }
 
   function openZoomModal() {
-    $('#zoom-modal-title').textContent = 'Sayfa inceleme';
-    $('#zoom-modal-sub').textContent = zoomFaceLabel();
     const face = state.face === 'front' ? 'front' : 'back';
-    $('#zoom-content').replaceChildren(buildSheet(face));
+    if (zoomViewMode === 'align') {
+      $('#zoom-modal-title').textContent = 'Hizalama inceleme';
+      $('#zoom-modal-sub').textContent = 'Turuncu ön · camgöbeği arka · pembe ok kaydırma';
+      $('#zoom-content').replaceChildren(buildAlignmentView());
+    } else {
+      $('#zoom-modal-title').textContent = 'Sayfa inceleme';
+      $('#zoom-modal-sub').textContent = zoomFaceLabel();
+      $('#zoom-content').replaceChildren(buildSheet(face));
+    }
     zoomModal.classList.remove('hidden');
     document.body.classList.add('zoom-open');
     requestAnimationFrame(() => {
@@ -655,15 +671,15 @@
     updateCount();
   }
 
-  function buildSheet(face) {
+  function buildPrintContent(face, options = {}) {
     const arrange = face === 'front' ? frontArrangement() : backArrangement();
-    const page = document.createElement('div');
-    page.className = 'print-sheet';
     const content = document.createElement('div');
     content.className = 'print-content';
-    const off = backOffsetForFace(face);
-    if (off.x || off.y) {
-      content.style.transform = `translate(${off.x}mm, ${off.y}mm)`;
+    if (!options.skipBackOffset) {
+      const off = backOffsetForFace(face);
+      if (off.x || off.y) {
+        content.style.transform = `translate(${off.x}mm, ${off.y}mm)`;
+      }
     }
     arrange.forEach((cell, index) => {
       const pos = GEO.cell(index);
@@ -690,9 +706,148 @@
       }
       content.appendChild(bm);
     });
-    page.appendChild(content);
+    return content;
+  }
+
+  function bookmarkFieldCenter() {
+    const x0 = GEO.originX;
+    const y0 = GEO.originY;
+    return {
+      x: x0 + (GEO.cols * GEO.bmW) / 2,
+      y: y0 + (GEO.rows * GEO.bmH) / 2,
+    };
+  }
+
+  function alignOffsetAnnotationSvg() {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'marks align-offset-mark');
+    svg.setAttribute('viewBox', `0 0 ${GEO.pageW} ${GEO.pageH}`);
+    const c = bookmarkFieldCenter();
+    const dx = state.backOffsetX;
+    const dy = state.backOffsetY;
+    const ex = c.x + dx;
+    const ey = c.y + dy;
+
+    const dot = (x, y, fill) => {
+      const el = document.createElementNS(SVG_NS, 'circle');
+      el.setAttribute('cx', String(x));
+      el.setAttribute('cy', String(y));
+      el.setAttribute('r', '1.1');
+      el.setAttribute('fill', fill);
+      svg.appendChild(el);
+    };
+
+    dot(c.x, c.y, '#f59e0b');
+    dot(ex, ey, '#22d3ee');
+
+    if (dx || dy) {
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', String(c.x));
+      line.setAttribute('y1', String(c.y));
+      line.setAttribute('x2', String(ex));
+      line.setAttribute('y2', String(ey));
+      line.setAttribute('stroke', '#f472b6');
+      line.setAttribute('stroke-width', '0.45');
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(line);
+      svg.appendChild(svgText(ex + 1.5, ey - 1, `Δ ${formatMm(dx)} / ${formatMm(dy)}`, {
+        size: 2.4,
+        fill: '#f472b6',
+        bold: true,
+      }));
+    } else {
+      svg.appendChild(svgText(c.x, c.y - 3, 'Kaydırma 0', {
+        size: 2.2,
+        anchor: 'middle',
+        fill: '#71717a',
+      }));
+    }
+    return svg;
+  }
+
+  function buildAlignmentView() {
+    const page = document.createElement('div');
+    page.className = 'print-sheet align-sheet';
+
+    if (state.marks) {
+      page.appendChild(cornerRegistrationSvg({
+        stroke: '#e4e4e7',
+        strokeWidth: '0.45',
+        className: 'marks marks-corners align-corners-fixed',
+      }));
+    }
+
+    const frontStack = document.createElement('div');
+    frontStack.className = 'align-stack align-stack-front';
+    frontStack.appendChild(buildPrintContent('front'));
+    if (state.marks) {
+      frontStack.appendChild(gridMarksSvg({
+        stroke: '#f59e0b',
+        strokeWidth: '0.4',
+        className: 'marks marks-grid align-grid-front',
+      }));
+    }
+
+    const backStack = document.createElement('div');
+    backStack.className = 'align-stack align-stack-back';
+    const backMoved = document.createElement('div');
+    backMoved.className = 'align-stack-moved';
+    const off = backOffsetForFace('back');
+    backMoved.style.transform = `translate(${off.x}mm, ${off.y}mm)`;
+    backMoved.appendChild(buildPrintContent('back', { skipBackOffset: true }));
+    if (state.marks) {
+      backMoved.appendChild(gridMarksSvg({
+        stroke: '#22d3ee',
+        strokeWidth: '0.4',
+        className: 'marks marks-grid align-grid-back',
+      }));
+    }
+    backStack.appendChild(backMoved);
+
+    page.appendChild(frontStack);
+    page.appendChild(backStack);
+    page.appendChild(alignOffsetAnnotationSvg());
+    return page;
+  }
+
+  function buildSheet(face) {
+    const page = document.createElement('div');
+    page.className = 'print-sheet';
+    page.appendChild(buildPrintContent(face));
     appendSheetOverlays(page, face);
     return page;
+  }
+
+  function refreshAlignmentPreview() {
+    const side = $('#align-preview');
+    if (side) {
+      side.replaceChildren(buildAlignmentView());
+      fitPreview(side);
+    }
+    const badge = $('#align-offset-badge');
+    if (badge) {
+      badge.textContent = `Δ X ${formatMm(state.backOffsetX)} · Y ${formatMm(state.backOffsetY)} mm`;
+    }
+    const modalAlign = $('#preview-align');
+    if (modalAlign && !modal.classList.contains('hidden')) {
+      modalAlign.replaceChildren(buildAlignmentView());
+      fitPreview(modalAlign);
+    }
+  }
+
+  function setZoomViewMode(mode) {
+    zoomViewMode = mode === 'align' ? 'align' : 'page';
+    const pageBtn = $('#zoom-mode-page');
+    const alignBtn = $('#zoom-mode-align');
+    if (pageBtn) {
+      pageBtn.classList.toggle('active', zoomViewMode === 'page');
+      pageBtn.setAttribute('aria-selected', zoomViewMode === 'page' ? 'true' : 'false');
+    }
+    if (alignBtn) {
+      alignBtn.classList.toggle('active', zoomViewMode === 'align');
+      alignBtn.setAttribute('aria-selected', zoomViewMode === 'align' ? 'true' : 'false');
+    }
+    refreshZoomSheet();
   }
 
   function fitPreview(wrap) {
@@ -708,6 +863,11 @@
   function openModal() {
     $('#preview-front').replaceChildren(buildSheet('front'));
     $('#preview-back').replaceChildren(buildSheet('back'));
+    const alignWrap = $('#preview-align');
+    if (alignWrap) {
+      alignWrap.replaceChildren(buildAlignmentView());
+      fitPreview(alignWrap);
+    }
     $('#modal-flip-note').textContent = flipNote();
     modal.classList.remove('hidden');
     fitPreview($('#preview-front'));
@@ -1234,6 +1394,7 @@
       renderMaps();
       refreshSheetOverlays();
       if (state.face === 'back') renderAll();
+      refreshAlignmentPreview();
       if (!zoomModal.classList.contains('hidden')) refreshZoomSheet();
     });
   });
@@ -1241,6 +1402,7 @@
   marksToggle.addEventListener('change', () => {
     state.marks = marksToggle.checked;
     refreshSheetOverlays();
+    refreshAlignmentPreview();
     if (!zoomModal.classList.contains('hidden')) refreshZoomSheet();
   });
 
@@ -1251,6 +1413,7 @@
     saveBackOffset();
     if (state.face === 'back') renderAll();
     refreshSheetOverlays();
+    refreshAlignmentPreview();
     if (!zoomModal.classList.contains('hidden')) refreshZoomSheet();
     if (!modal.classList.contains('hidden')) {
       $('#preview-back').replaceChildren(buildSheet('back'));
@@ -1269,6 +1432,8 @@
   });
 
   $('#btn-sheet-zoom').addEventListener('click', openZoomModal);
+  $('#zoom-mode-page').addEventListener('click', () => setZoomViewMode('page'));
+  $('#zoom-mode-align').addEventListener('click', () => setZoomViewMode('align'));
   $('#zoom-close').addEventListener('click', closeZoomModal);
   $('#zoom-fit').addEventListener('click', fitZoom);
   $('#zoom-in').addEventListener('click', () => {
@@ -1339,7 +1504,9 @@
     if (!modal.classList.contains('hidden')) {
       fitPreview($('#preview-front'));
       fitPreview($('#preview-back'));
+      fitPreview($('#preview-align'));
     }
+    refreshAlignmentPreview();
   });
 
   document.addEventListener('keydown', (event) => {
@@ -1377,4 +1544,5 @@
   renderMaps();
   updateControls();
   updateCount();
+  refreshAlignmentPreview();
 })();

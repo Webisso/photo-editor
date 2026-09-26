@@ -146,6 +146,19 @@
             </label>
             <button type="button" id="btn-off-reset" class="tool-btn tool-btn-muted mt-2">Kaydırmayı sıfırla</button>
           </div>
+          <div class="align-preview-block mt-4">
+            <div class="align-preview-head">
+              <span class="text-xs font-semibold text-zinc-300">Canlı hizalama</span>
+              <span id="align-offset-badge" class="text-xs text-zinc-500 tabular-nums">Δ X 0,00 · Y 0,00 mm</span>
+            </div>
+            <div id="align-preview" class="align-preview-wrap"></div>
+            <ul class="align-legend">
+              <li><span class="legend-swatch legend-front" aria-hidden="true"></span> Turuncu — ön yüz ızgarası</li>
+              <li><span class="legend-swatch legend-back" aria-hidden="true"></span> Camgöbeği — arka yüz (kaydırma ile)</li>
+              <li><span class="legend-swatch legend-corner" aria-hidden="true"></span> Açık — sabit köşe hizası (baskı)</li>
+              <li><span class="legend-swatch legend-arrow" aria-hidden="true"></span> Pembe ok — kaydırma miktarı</li>
+            </ul>
+          </div>
           <div class="mt-4">
             <button type="button" id="btn-clear-all" class="tool-btn tool-btn-muted">Tümünü temizle</button>
           </div>
@@ -182,6 +195,10 @@
             <figcaption>2 · Arka yüz</figcaption>
             <div id="preview-back" class="preview-wrap"></div>
           </figure>
+          <figure class="preview-align-figure">
+            <figcaption>Üst üste hizalama (kaydırma canlı)</figcaption>
+            <div id="preview-align" class="preview-wrap preview-wrap-align"></div>
+          </figure>
         </div>
         <div class="print-note">
           <p id="modal-flip-note"></p>
@@ -202,6 +219,10 @@
         <p id="zoom-modal-sub" class="text-xs text-zinc-400 mt-0.5">Ön yüz</p>
       </div>
       <div class="zoom-modal-actions">
+        <div class="zoom-mode-switch" role="tablist" aria-label="İnceleme modu">
+          <button type="button" id="zoom-mode-page" class="zoom-mode-btn active" role="tab" aria-selected="true">Sayfa</button>
+          <button type="button" id="zoom-mode-align" class="zoom-mode-btn" role="tab" aria-selected="false">Hizalama</button>
+        </div>
         <span id="zoom-level" class="zoom-level">100%</span>
         <button type="button" id="zoom-out" class="icon-btn" title="Uzaklaştır">−</button>
         <button type="button" id="zoom-in" class="icon-btn" title="Yakınlaştır">+</button>

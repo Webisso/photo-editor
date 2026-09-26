@@ -699,6 +699,134 @@
   border: 1px solid rgb(63 63 70);
 }
 
+.preview-align-figure {
+  grid-column: 1 / -1;
+}
+
+.preview-wrap-align {
+  background: rgb(24 24 27);
+}
+
+.align-preview-block {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(39 39 42);
+}
+
+.align-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.align-preview-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: rgb(24 24 27);
+  border-radius: 0.5rem;
+  border: 1px solid rgb(63 63 70);
+}
+
+.align-legend {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  color: rgb(113 113 122);
+}
+
+.align-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 0.15rem;
+  flex-shrink: 0;
+}
+
+.legend-front { background: #f59e0b; }
+.legend-back { background: #22d3ee; }
+.legend-corner { background: #e4e4e7; border: 1px solid rgb(82 82 91); }
+.legend-arrow { background: #f472b6; }
+
+.align-sheet {
+  background: rgb(18 18 20);
+}
+
+.align-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.align-stack-moved {
+  position: absolute;
+  inset: 0;
+}
+
+.align-sheet .print-bm {
+  opacity: 0.32;
+}
+
+.align-stack-front .print-bm {
+  outline: 0.15mm solid rgb(245 158 11 / 0.55);
+}
+
+.align-stack-back .print-bm {
+  opacity: 0.42;
+  outline: 0.15mm solid rgb(34 211 238 / 0.65);
+}
+
+.align-sheet .align-corners-fixed {
+  z-index: 5;
+}
+
+.align-sheet .align-grid-front,
+.align-sheet .align-grid-back {
+  z-index: 4;
+}
+
+.align-offset-mark {
+  z-index: 6;
+  pointer-events: none;
+}
+
+.zoom-mode-switch {
+  display: inline-flex;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(63 63 70);
+  overflow: hidden;
+  margin-right: 0.35rem;
+}
+
+.zoom-mode-btn {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: rgb(39 39 42);
+  color: rgb(161 161 170);
+  border: none;
+  cursor: pointer;
+}
+
+.zoom-mode-btn:hover {
+  color: rgb(228 228 231);
+}
+
+.zoom-mode-btn.active {
+  background: rgb(217 119 6);
+  color: white;
+}
+
 .print-note {
   display: flex;
   flex-direction: column;
