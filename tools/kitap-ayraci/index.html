@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitap Ayracı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="../../index.html" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors shrink-0" title="Ana menü">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-sm font-bold shrink-0">KA</div>
+        <div class="min-w-0">
+          <h1 class="text-lg font-semibold tracking-tight">Kitap Ayracı</h1>
+          <p class="text-xs text-zinc-500 truncate">4,5 × 14 cm · A4 · üstte 4, altta 4</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button" id="btn-png" class="tool-btn">PNG indir</button>
+        <button type="button" id="btn-print" class="tool-btn tool-btn-primary">Baskı</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="workspace">
+      <section class="stage">
+        <div class="stage-toolbar">
+          <div class="face-switch" role="tablist" aria-label="Yüz seçimi">
+            <button type="button" id="face-front" class="face-btn active" role="tab" aria-selected="true">Ön yüz</button>
+            <button type="button" id="face-back" class="face-btn" role="tab" aria-selected="false">Arka yüz</button>
+          </div>
+          <button type="button" id="btn-sheet-zoom" class="icon-btn" title="Tam ekran incele (yakınlaştır)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14zM11 8v6M8 11h6"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="sheet-frame">
+          <div id="sheet" class="sheet" tabindex="-1"></div>
+        </div>
+
+        <div id="controls" class="controls">
+          <div class="controls-head">
+            <strong id="controls-title">Ayraç seçilmedi</strong>
+            <span id="controls-meta"></span>
+          </div>
+          <p id="controls-empty" class="controls-empty">Bir ayraca tıklayın, görseli seçin.</p>
+          <p id="controls-preview" class="controls-empty hidden">Arka yüz önizleme. Düzenleme yalnızca ön yüzde yapılır; baskıda ön tasarım otomatik arkaya aktarılır.</p>
+          <div id="controls-pick" class="hidden">
+            <button type="button" id="btn-pick" class="tool-btn tool-btn-primary">Görsel seç</button>
+          </div>
+          <div id="controls-photo" class="hidden">
+            <label class="scale-label" for="scale-range">
+              <span>Boyut <strong id="scale-val">100%</strong></span>
+              <input type="range" id="scale-range" min="20" max="600" value="100">
+            </label>
+            <div class="controls-actions">
+              <button type="button" id="btn-replace" class="tool-btn">Değiştir</button>
+              <button type="button" id="btn-fill" class="tool-btn">Doldur</button>
+              <button type="button" id="btn-fit" class="tool-btn">Sığdır</button>
+              <button type="button" id="btn-clear" class="tool-btn tool-btn-muted">Kaldır</button>
+            </div>
+          </div>
+        </div>
+
+        <p id="hint-front" class="hint">
+          Boş ayraca tıklayın. Görseli sürükleyerek konumlandırın, kaydırıcı veya fare tekerleği ile büyütün.
+          Ok tuşları ince ayar yapar. <kbd class="kbd">Delete</kbd> görseli kaldırır.
+        </p>
+        <p id="hint-back" class="hint hidden">
+          Bu görünüm baskıdaki arka sayfayı gösterir. Değişiklik için <strong>Ön yüz</strong> sekmesine geçin.
+        </p>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="panel-title mb-0">Sayfa</h2>
+            <span id="fill-count" class="text-xs text-zinc-500">Dolu 0/8</span>
+          </div>
+          <p class="text-sm text-zinc-400">
+            Her ayraç 4,5 × 14 cm. A4 üzerinde iki sıra, her sırada dört ayraç.
+            Sağ ve sol kenar 15 mm, üst ve alt kenar 8,5 mm.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">Arka yüz hizası</h2>
+          <p class="text-sm text-zinc-400 mb-3">
+            Ön yüzdeki tasarımlar baskıda arka sayfaya otomatik taşınır. Sıra, kağıdı yazıcıya geri koyma yönünüze göre ayarlanır.
+          </p>
+          <div class="flip-options">
+            <label class="flip-card">
+              <input type="radio" name="flip" value="long" checked>
+              <span class="flip-title">Uzun kenar</span>
+              <span class="flip-desc">Sağa-sola çevirin. Üst kenar üstte kalsın.</span>
+            </label>
+            <label class="flip-card">
+              <input type="radio" name="flip" value="short">
+              <span class="flip-title">Kısa kenar</span>
+              <span class="flip-desc">Yukarı-aşağı çevirin. Eski alt kenar öne gelsin.</span>
+            </label>
+          </div>
+          <div class="maps">
+            <div>
+              <span class="map-label">Ön sayfa</span>
+              <div id="front-map" class="flip-map"></div>
+            </div>
+            <div>
+              <span class="map-label">Arka sayfa</span>
+              <div id="back-map" class="flip-map"></div>
+            </div>
+          </div>
+
+          <p class="text-xs text-zinc-500 mt-3">
+            Baskıda ayraç alanının dışında <strong>ÖN / ARKA</strong> ve <strong>besleme kenarı</strong> yazılır; kağıdı yazıcıya koyarken bu işaretleri kullanın.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">Baskı</h2>
+          <label class="check-row">
+            <input type="checkbox" id="opt-marks" checked>
+            <span>Kesim çizgileri, köşe hizası ve kenar yazıları</span>
+          </label>
+          <p class="text-xs text-zinc-500 mt-2">
+            Köşe çizgileri iki yüzde <em>aynı yerde</em> basılır; ışığa tutup üst üste getirin. Hâlâ kayma varsa arka kaydırmayı ayarlayın veya çevirme yönünü değiştirin.
+          </p>
+          <div class="offset-fields mt-3">
+            <label class="scale-label" for="back-off-x">
+              <span>Arka kaydırma X <strong id="back-off-x-val">0,00</strong> mm</span>
+              <input type="range" id="back-off-x" min="-1" max="1" step="0.05" value="0">
+            </label>
+            <label class="scale-label mt-2" for="back-off-y">
+              <span>Arka kaydırma Y <strong id="back-off-y-val">0,00</strong> mm</span>
+              <input type="range" id="back-off-y" min="-1" max="1" step="0.05" value="0">
+            </label>
+            <button type="button" id="btn-off-reset" class="tool-btn tool-btn-muted mt-2">Kaydırmayı sıfırla</button>
+          </div>
+          <div class="mt-4">
+            <button type="button" id="btn-clear-all" class="tool-btn tool-btn-muted">Tümünü temizle</button>
+          </div>
+        </section>
+
+        <ol class="steps">
+          <li>Ön yüzde her ayraca tıklayıp görsel seçin, sürükleyip büyütün.</li>
+          <li>Arka yüz sekmesinden baskı hizasını kontrol edin (düzenleme yapılmaz).</li>
+          <li>Önce ön yüzü yazdırın. Kağıdı seçtiğiniz yöne çevirip aynı kağıda arka yüzü basın.</li>
+        </ol>
+      </aside>
+    </div>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-panel" role="dialog" aria-labelledby="modal-title">
+      <div class="flex items-center justify-between gap-4 p-5 border-b border-zinc-800">
+        <div>
+          <h2 id="modal-title" class="text-lg font-semibold">Baskı</h2>
+          <p class="text-sm text-zinc-400 mt-0.5">Aynı kağıda iki geçiş</p>
+        </div>
+        <button type="button" id="modal-close" class="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200" title="Kapat">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="preview-grid">
+          <figure>
+            <figcaption>1 · Ön yüz</figcaption>
+            <div id="preview-front" class="preview-wrap"></div>
+          </figure>
+          <figure>
+            <figcaption>2 · Arka yüz</figcaption>
+            <div id="preview-back" class="preview-wrap"></div>
+          </figure>
+        </div>
+        <div class="print-note">
+          <p id="modal-flip-note"></p>
+          <p>Yazdırma penceresinde ölçek <strong>%100</strong>, kenar boşluğu <strong>yok</strong>, üstbilgi kapalı. Ön ve arka ayrı ayrı basılır; her iki geçişte aynı ayarları kullanın. Köşe çizgileri üst üste gelmiyorsa <strong>Arka kaydırma</strong> ile ince ayar yapın.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="btn-print-front" class="tool-btn tool-btn-primary">Ön yüzü yazdır</button>
+          <button type="button" id="btn-print-back" class="tool-btn tool-btn-primary">Arka yüzü yazdır</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="zoom-modal" class="zoom-modal hidden" role="dialog" aria-labelledby="zoom-modal-title">
+    <div class="zoom-modal-top">
+      <div>
+        <h2 id="zoom-modal-title" class="text-base font-semibold">Sayfa inceleme</h2>
+        <p id="zoom-modal-sub" class="text-xs text-zinc-400 mt-0.5">Ön yüz</p>
+      </div>
+      <div class="zoom-modal-actions">
+        <span id="zoom-level" class="zoom-level">100%</span>
+        <button type="button" id="zoom-out" class="icon-btn" title="Uzaklaştır">−</button>
+        <button type="button" id="zoom-in" class="icon-btn" title="Yakınlaştır">+</button>
+        <button type="button" id="zoom-fit" class="tool-btn">Sığdır</button>
+        <button type="button" id="zoom-close" class="icon-btn" title="Kapat">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="zoom-viewport" class="zoom-viewport">
+      <div id="zoom-canvas" class="zoom-canvas">
+        <div id="zoom-content"></div>
+      </div>
+    </div>
+    <p class="zoom-hint">Tekerlek veya pinch ile yakınlaştırın. Sürükleyerek kaydırın. <kbd class="kbd">Esc</kbd> ile kapatın.</p>
+  </div>
+
+  <div id="print-root"></div>
+  <div id="toast" class="toast hidden"></div>
+  <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden">
+
+  <script src="js/app.js"></script>
+</body>
+</html>
